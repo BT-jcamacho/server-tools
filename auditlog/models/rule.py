@@ -139,7 +139,6 @@ class AuditlogRule(models.Model):
         states={"subscribed": [("readonly", True)]},
     )
     capture_record = fields.Boolean(
-        "Capture Record",
         help="Select this if you want to keep track of Unlink Record",
     )
 
@@ -224,7 +223,7 @@ class AuditlogRule(models.Model):
         """Update the registry when a new rule is created."""
         if "model_id" not in vals or not vals["model_id"]:
             raise UserError(_("No model defined to create line."))
-        model = self.env["ir.model"].browse(vals["model_id"])
+        model = self.env["ir.model"].sudo().browse(vals["model_id"])
         vals.update({"model_name": model.name, "model_model": model.model})
         new_record = super().create(vals)
         if new_record._register_hook():
@@ -236,7 +235,7 @@ class AuditlogRule(models.Model):
         if "model_id" in vals:
             if not vals["model_id"]:
                 raise UserError(_("Field 'model_id' cannot be empty."))
-            model = self.env["ir.model"].browse(vals["model_id"])
+            model = self.env["ir.model"].sudo().browse(vals["model_id"])
             vals.update({"model_name": model.name, "model_model": model.model})
         res = super().write(vals)
         if self._register_hook():
@@ -519,7 +518,7 @@ class AuditlogRule(models.Model):
             # - we use 'search()' then 'read()' instead of the 'search_read()'
             #   to take advantage of the 'classic_write' loading
             # - search the field in the current model and those it inherits
-            field_model = self.env["ir.model.fields"]
+            field_model = self.env["ir.model.fields"].sudo()
             all_model_ids = [model.id]
             all_model_ids.extend(model.inherited_model_ids.ids)
             field = field_model.search(

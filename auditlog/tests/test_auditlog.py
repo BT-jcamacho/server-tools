@@ -247,19 +247,27 @@ class TestFieldRemoval(SavepointCase):
         existing_audit_logs.unlink()
 
         # Create a test model to remove
-        cls.test_model = cls.env["ir.model"].create(
-            {"name": "x_test_model", "model": "x_test.model", "state": "manual"}
+        cls.test_model = (
+            cls.env["ir.model"]
+            .sudo()
+            .create(
+                {"name": "x_test_model", "model": "x_test.model", "state": "manual"}
+            )
         )
 
         # Create a test model field to remove
-        cls.test_field = cls.env["ir.model.fields"].create(
-            {
-                "name": "x_test_field",
-                "field_description": "x_Test Field",
-                "model_id": cls.test_model.id,
-                "ttype": "char",
-                "state": "manual",
-            }
+        cls.test_field = (
+            cls.env["ir.model.fields"]
+            .sudo()
+            .create(
+                {
+                    "name": "x_test_field",
+                    "field_description": "x_Test Field",
+                    "model_id": cls.test_model.id,
+                    "ttype": "char",
+                    "state": "manual",
+                }
+            )
         )
 
         # Setup auditlog rule
@@ -305,13 +313,13 @@ class TestFieldRemoval(SavepointCase):
         self.assert_values()
 
         # Remove the field
-        self.test_field.with_context({MODULE_UNINSTALL_FLAG: True}).unlink()
+        self.test_field.with_context(**{MODULE_UNINSTALL_FLAG: True}).unlink()
         self.assert_values()
         # The field should not be linked
         self.assertFalse(self.logs.mapped("line_ids.field_id"))
 
         # Remove the model
-        self.test_model.with_context({MODULE_UNINSTALL_FLAG: True}).unlink()
+        self.test_model.with_context(**{MODULE_UNINSTALL_FLAG: True}).unlink()
         self.assert_values()
 
         # The model should not be linked
